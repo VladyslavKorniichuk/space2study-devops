@@ -1,0 +1,167 @@
+---
+# =============================================================
+# General
+# =============================================================
+- name: Common Setup for All Servers
+  hosts: all
+  become: true 
+  tasks:
+    - name: Install Git, Firewalld, and xdg-utils
+      ansible.builtin.dnf:
+        name:
+          - git
+          - firewalld
+          - xdg-utils 
+        state: present
+
+    - name: Ensure Firewalld service is running
+      ansible.builtin.service:
+        name: firewalld
+        state: started
+        enabled: true
+
+    - name: Add NodeSource Node.js 18 repository
+      ansible.builtin.shell: |
+        curl -fsSL https://rpm.nodesource.com/setup_18.x | bash -
+      args:
+        creates: /etc/yum.repos.d/nodesource-nodejs.repo
+
+    - name: Install Node.js runtime
+      ansible.builtin.dnf:
+        name: nodejs
+        state: present
+
+# =============================================================
+# Backend
+# =============================================================
+- name: Deploy Backend Application
+  hosts: backend
+  become: true
+  tasks:
+    - name: Open port 5000 in firewall
+      ansible.builtin.command: firewall-cmd --add-port=5000/tcp --permanent
+      ignore_errors: true
+
+    - name: Reload firewall rules
+      ansible.builtin.command: firewall-cmd --reload
+
+    - name: Clone project repository from GitHub
+      ansible.builtin.git:
+        repo: "https://github.com/VladyslavKorniichuk/space2study-devops.git"
+        dest: /home/vagrant/app
+        version: main
+        force: true
+      become_user: vagrant
+
+    - name: Generate Backend .env file
+      ansible.builtin.copy:
+        dest: /home/vagrant/app/backend/.env
+        owner: vagrant
+        group: vagrant
+        mode: '0644'
+        content: |
+          SERVER_PORT=5000
+          PORT=5000
+          CLIENT_URL=http://192.168.56.21:3000
+          MONGODB_URL=mongodb://192.168.56.1:27017/space2study
+          JWT_SECRET=supersecretkey12345
+          SUPER_ADMIN_PASSWORD=Password123!
+
+    - name: Clean husky and install backend npm dependencies
+      ansible.builtin.shell: |
+        npm pkg delete scripts.prepare || true
+        npm install
+      args:
+        chdir: /home/vagrant/app/backend
+      become_user: vagrant
+
+    - name: Create Systemd service unit for Backend
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/space2study-backend.service
+        content: |
+          [Unit]
+          Description=Space2Study Backend API
+          After=network.target
+
+          [Service]
+          Type=simple
+          User=vagrant
+          WorkingDirectory=/home/vagrant/app/backend
+          ExecStart=/usr/bin/npm start
+          Restart=always
+          Environment=PORT=5000
+
+          [Install]
+          WantedBy=multi-user.target
+
+    - name: Start and enable Backend service
+      ansible.builtin.systemd:
+        name: space2study-backend
+        state: restarted
+        enabled: true
+        daemon_reload: true
+
+# =============================================================
+# Frontend
+# =============================================================
+- name: Deploy Frontend Application
+  hosts: frontend
+  become: true
+  tasks:
+    - name: Open port 3000 in firewall
+      ansible.builtin.command: firewall-cmd --add-port=3000/tcp --permanent
+      ignore_errors: true
+
+    - name: Reload firewall rules
+      ansible.builtin.command: firewall-cmd --reload
+
+    - name: Clone project repository from GitHub
+      ansible.builtin.git:
+        repo: "https://github.com/VladyslavKorniichuk/space2study-devops.git"
+        dest: /home/vagrant/app
+        version: main
+        force: true
+      become_user: vagrant
+
+    - name: Generate Frontend .env file
+      ansible.builtin.copy:
+        dest: /home/vagrant/app/frontend/.env
+        owner: vagrant
+        group: vagrant
+        mode: '0644'
+        content: |
+          VITE_API_BASE_PATH=http://192.168.56.20:5000
+
+    - name: Clean husky and install frontend npm dependencies
+      ansible.builtin.shell: |
+        npm pkg delete scripts.prepare || true
+        npm install
+      args:
+        chdir: /home/vagrant/app/frontend
+      become_user: vagrant
+
+    - name: Create Systemd service unit for Frontend
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/space2study-frontend.service
+        content: |
+          [Unit]
+          Description=Space2Study Frontend Web App
+          After=network.target
+
+          [Service]
+          Type=simple
+          User=vagrant
+          WorkingDirectory=/home/vagrant/app/frontend
+          ExecStart=/usr/bin/npm start -- --host 0.0.0.0 --no-open
+          Restart=always
+          Environment=BROWSER=none
+
+          [Install]
+          WantedBy=multi-user.target
+
+    - name: Start and enable Frontend service
+      ansible.builtin.systemd:
+        name: space2study-frontend
+        state: restarted
+        enabled: true
+        daemon_reload: true
