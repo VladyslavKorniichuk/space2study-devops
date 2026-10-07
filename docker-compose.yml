@@ -16,21 +16,40 @@ services:
       - space2study-net
 
   # -------------------------------------------------------------
-  # Node.js API (Backend)
+  # Node.js API (Backend1)
   # -------------------------------------------------------------
-  backend:
+  backend1:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: space2study-backend
+    container_name: space2study-backend-1
     restart: unless-stopped
-    ports:
-      - "5000:5000"
     environment:
       - PORT=5000
       - SERVER_PORT=5000
       - MONGODB_URL=mongodb://mongodb:27017/space2study
-      - CLIENT_URL=http://localhost:3000
+      - CLIENT_URL=http://localhost
+      - JWT_SECRET=supersecretkey12345
+      - SUPER_ADMIN_PASSWORD=Password123!
+    depends_on:
+      - mongodb
+    networks:
+      - space2study-net
+
+  # -------------------------------------------------------------
+  # Node.js API (Backend2)
+  # -------------------------------------------------------------
+  backend2:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: space2study-backend-2
+    restart: unless-stopped
+    environment:
+      - PORT=5000
+      - SERVER_PORT=5000
+      - MONGODB_URL=mongodb://mongodb:27017/space2study
+      - CLIENT_URL=http://localhost
       - JWT_SECRET=supersecretkey12345
       - SUPER_ADMIN_PASSWORD=Password123!
     depends_on:
@@ -47,10 +66,27 @@ services:
       dockerfile: Dockerfile
     container_name: space2study-frontend
     restart: unless-stopped
-    ports:
-      - "3000:80" 
     depends_on:
-      - backend
+      - backend1
+      - backend2
+    networks:
+      - space2study-net
+
+  # -------------------------------------------------------------
+  # Load balancer
+  # -------------------------------------------------------------
+  loadbalancer:
+    image: nginx:alpine
+    container_name: space2study-lb
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx-lb:/etc/nginx/conf.d:ro
+    depends_on:
+      - frontend
+      - backend1
+      - backend2
     networks:
       - space2study-net
 
