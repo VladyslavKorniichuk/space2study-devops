@@ -22,3 +22,10 @@
 - **Stack:** Distributed Multi-VM (Backend: `192.168.56.20`, Frontend: `192.168.56.21`).
 - **Automation:** Configured `playbook.yml` and `inventory.ini` for unattended deployment, firewalld, and systemd daemons.
 - **Result:** Execution finished with `failed=0`. Verified full-stack app at `http://192.168.56.21:3000`.
+
+### Task: Deploying a Containerized Web Application
+- **Status:** ✅ Done
+- **Backend Container:** Custom image based on `node:18-slim`, non-root execution (`USER node`), layer caching.
+- **Frontend Container:** Production multi-stage build (`node:18-alpine` builder -> `nginx:alpine` runtime) with SPA routing rules (`try_files`).
+- **Orchestration:** Implemented `docker-compose.yml` deploying Frontend, Backend, and MongoDB with isolated bridge networking and persistent storage volumes.
+- **Result:** Successfully deployed containerized stack accessible at `http://localhost:3000`.
