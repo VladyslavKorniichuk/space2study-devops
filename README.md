@@ -29,3 +29,9 @@
 - **Frontend Container:** Production multi-stage build (`node:18-alpine` builder -> `nginx:alpine` runtime) with SPA routing rules (`try_files`).
 - **Orchestration:** Implemented `docker-compose.yml` deploying Frontend, Backend, and MongoDB with isolated bridge networking and persistent storage volumes.
 - **Result:** Successfully deployed containerized stack accessible at `http://localhost:3000`.
+
+### Task: Setup Load Balancing for Webapp
+- **Status:** ✅ Done
+- **Cluster:** Replicated backend into 2 instances (`backend1`, `backend2`).
+- **Routing:** Web traffic (`/`) routed to frontend container; API traffic (`/api`) balanced across backend cluster.
+- **Result:** Unified application accessible via `http://localhost`.
