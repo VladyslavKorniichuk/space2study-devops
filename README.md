@@ -35,3 +35,20 @@
 - **Cluster:** Replicated backend into 2 instances (`backend1`, `backend2`).
 - **Routing:** Web traffic (`/`) routed to frontend container; API traffic (`/api`) balanced across backend cluster.
 - **Result:** Unified application accessible via `http://localhost`.
+
+### Task: Implement Infrastructure as Code
+- **Status:** ✅ Done
+- **Tooling:** Terraform, HCL, Docker Provider (`kreuzwerker/docker`).
+- **Structure:** Modular setup with `versions.tf`, `variables.tf`, `main.tf`, and `outputs.tf`.
+- **Resources:** Declaratively provisioned network (`space2study-tf-net`), persistent storage volume, and full containerized cluster (DB, 2 Backend replicas, Frontend, Nginx LB).
+- **Result:** Applied infrastructure via `terraform apply` with state tracking and drift detection.
+
+### Task: Implement a Continuous Integration/Continuous Delivery
+- **Status:** ✅ Done
+- **Platform:** GitHub Actions (`.github/workflows/ci.yml`).
+- **Triggers:** Automated runs on `push` and `pull_request` across `main` and feature branches.
+- **Pipeline Jobs:**
+  - `backend-check`: Node.js 18 dependency installation and integrity validation with npm caching.
+  - `frontend-check`: TypeScript/React compilation and Vite production build verification.
+  - `docker-build-check`: Automated build testing for both Backend and Frontend Docker images.
+- **Result:** Established automated pipeline preventing broken builds from entering production.
