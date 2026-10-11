@@ -54,4 +54,4 @@ jobs:
           cd frontend
           npm pkg delete scripts.prepare || true
           npm ci --legacy-peer-deps
-          npm ru
+          npm run
