@@ -1,0 +1,79 @@
+name: Space2study CI
+
+# =============================================================
+# Backend
+# =============================================================
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  backend-check:
+    name: Test & Build backend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v7
+        with:
+          node-version: 18
+          cache: 'npm'
+          cahce-dependency-path: backend/package-lock.json
+
+
+      - name: Install Backend dependencies
+        run: |
+          cd backend
+          npm pkg delete scripts.prepare || true
+          npm ci --legacy-peer-deps
+
+# =============================================================
+# Frontend
+# =============================================================
+
+  frontend-check:
+    name: Build & Verify frontend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js 
+        uses: actions/setup-node@v7
+        with: 
+          node-version: 18
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Frontend dependencies & Build
+        run: |
+          cd frontend
+          npm pkg delete scripts.prepare || true
+          npm ci --legacy-peer-deps
+          npm run Build
+
+# =============================================================
+# Docker
+# =============================================================
+
+  docker-build-check:
+    name: Test Docker builds
+    runs-on: ubuntu-latest
+    needs: [backend-check, frontend-check]
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v7
+
+      - name: Setup Docker 
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build Backend Docer Image
+        uses: docker/build-push-action@v7
+        with: 
+          context: ./frontend
+          push: false
