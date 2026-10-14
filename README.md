@@ -52,3 +52,13 @@
   - `frontend-check`: TypeScript/React compilation and Vite production build verification.
   - `docker-build-check`: Automated build testing for both Backend and Frontend Docker images.
 - **Result:** Established automated pipeline preventing broken builds from entering production.
+
+### Task: Artifact Management
+- **Status:** ✅ Done
+- **Registry:** GitHub Container Registry (`ghcr.io`).
+- **Security & Auth:** Ephemeral authentication using `${{ secrets.GITHUB_TOKEN }}` without hardcoded credentials.
+- **Tagging Strategy:** Automated semantic tagging based on Git commit SHA and `latest` tracking for production releases.
+- **Published Artifacts:**
+  - `ghcr.io/vladyslavkorniichuk/space2study-devops/backend`
+  - `ghcr.io/vladyslavkorniichuk/space2study-devops/frontend`
+- **Result:** Successfully automated container image lifecycle and publishing to repository Packages.
