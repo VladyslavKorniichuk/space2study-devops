@@ -1,4 +1,4 @@
-name: Space2study CI/CD & Artifact Management
+name: Space2study CI/CD & Artifact Management & DevSecOps
 
 on:
   push:
@@ -9,6 +9,7 @@ on:
 permissions:
   contents: read
   packages: write
+  security-events: write
 
 jobs:
   # =============================================================
@@ -61,12 +62,41 @@ jobs:
           npm run build 
 
   # =============================================================
-  # CD & Artifact Management & Push Docker Images
+  # DevSecOps: SCA (Software Composition Analysis)
+  # =============================================================
+  dependency-security-sca:
+    name: Trivy SCA dependency Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v7
+
+      - name: Run Trivy SCA on Backend
+        uses: aquasecurity/trivy-action@0.28.0
+        with: 
+          scan-type: 'fs'
+          scan-ref: './backend'
+          format: 'table'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '0'
+
+      - name: Run Trivy SCA on Frontend
+        uses: aquasecurity/trivy-action@0.28.0
+        with: 
+          scan-type: 'fs'
+          scan-ref: './frontend'
+          format: 'table'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '0'        
+
+  # =============================================================
+  # CD, Container Scanning & Push Docker Images
   # =============================================================
   build-and-push-artifacts:
-    name: Build & Publish Container artifacts
+    name: Build, Scan & Publish Container artifacts
     runs-on: ubuntu-latest
-    needs: [backend-check, frontend-check]
+    needs: [backend-check, frontend-check, dependency-security-sca]
 
     steps:
       - name: Checkout source code
@@ -91,14 +121,6 @@ jobs:
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
             type=sha,format=short
 
-      - name: Build & Push Backend Image
-        uses: docker/build-push-action@v6
-        with: 
-          context: ./backend
-          push: ${{ github.ref == 'refs/heads/main' }}
-          tags: ${{ steps.meta-backend.outputs.tags }}
-          labels: ${{ steps.meta-backend.outputs.labels }}
-
       - name: Extract metadata for Frontend
         id: meta-frontend
         uses: docker/metadata-action@v5
@@ -108,10 +130,49 @@ jobs:
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
             type=sha,format=short
 
-      - name: build & Push Frontend Image
+      - name: Build Backend Image locally for scanning
         uses: docker/build-push-action@v6
         with:
+          context: ./backend
+          load: true
+          tags: local-backend:test
+
+      - name: Build Frontend Image locally for scanning
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          load: true
+          tags: local-frontend:test
+
+      - name: Run Trivy Vulnerability Scan on Backend Image
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: 'local-backend:test'
+          format: 'table'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '0'
+
+      - name: Run Trivy Vulnerability Scan on Frontend Image
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: 'local-frontend:test'
+          format: 'table'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '0'
+
+      - name: Build & Push Backend Image
+        uses: docker/build-push-action@v6
+        with: 
+          context: ./backend
+          push: ${{ github.ref == 'refs/heads/main' }}
+          tags: ${{ steps.meta-backend.outputs.tags }}
+          labels: ${{ steps.meta-backend.outputs.labels }}
+
+      - name: Build & Push Frontend Image
+        uses: docker/build-push-action@v6
+        with: 
           context: ./frontend
           push: ${{ github.ref == 'refs/heads/main' }}
           tags: ${{ steps.meta-frontend.outputs.tags }}
           labels: ${{ steps.meta-frontend.outputs.labels }}
+          
