@@ -73,7 +73,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Run Trivy SCA on Backend
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@master
         with: 
           scan-type: 'fs'
           scan-ref: './backend'
@@ -82,7 +82,7 @@ jobs:
           exit-code: '0'
 
       - name: Run Trivy SCA on Frontend
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@master
         with: 
           scan-type: 'fs'
           scan-ref: './frontend'
@@ -145,7 +145,7 @@ jobs:
           tags: local-frontend:test
 
       - name: Run Trivy Vulnerability Scan on Backend Image
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@master
         with:
           image-ref: 'local-backend:test'
           format: 'table'
@@ -153,7 +153,7 @@ jobs:
           exit-code: '0'
 
       - name: Run Trivy Vulnerability Scan on Frontend Image
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@master
         with:
           image-ref: 'local-frontend:test'
           format: 'table'
@@ -175,4 +175,3 @@ jobs:
           push: ${{ github.ref == 'refs/heads/main' }}
           tags: ${{ steps.meta-frontend.outputs.tags }}
           labels: ${{ steps.meta-frontend.outputs.labels }}
-          
