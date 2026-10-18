@@ -62,3 +62,16 @@
   - `ghcr.io/vladyslavkorniichuk/space2study-devops/backend`
   - `ghcr.io/vladyslavkorniichuk/space2study-devops/frontend`
 - **Result:** Successfully automated container image lifecycle and publishing to repository Packages.
+
+### Task: Scanning images and dependencies in CI/CD
+- **Status:** ✅ Done
+- **Tooling:** Aqua Security Trivy (v0.28.0), GitHub Actions.
+- **SCA (Software Composition Analysis):** Automated filesystem scanning (`scan-type: 'fs'`) of `package-lock.json` dependencies for backend and frontend.
+- **Container Image Scanning:** Pre-release vulnerability inspection of built Docker images (`CRITICAL,HIGH` severity filters).
+- **Result:** Fully automated DevSecOps gate integrated into CI/CD prior to artifact publication.
+
+### Task: Implement CCI (Continuous Code Inspection)
+- **Status:** ✅ Done
+- **Tooling:** ESLint, Static Application Analysis, GitHub Actions.
+- **Scope:** Automated static inspection of backend and frontend source trees (`src/`) against `.eslintrc` quality standards.
+- **Result:** Automated code quality gates established in continuous integration pipeline.
