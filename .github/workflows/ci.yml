@@ -13,6 +13,35 @@ permissions:
 
 jobs:
   # =============================================================
+  # CCI: Continious Code Inspection (Linting & Static analysis)
+  # =============================================================
+  code-inspection-cci:
+    name: COntinious Code Inspection
+    runs-on: ubuntu latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 18
+
+      - name: Inspect Backend Code Quality (ESLint)
+        run: |
+          cd backend
+          npm pkg delete scripts.prepare || true
+          npm ci --legacy-peer-deps
+          npx eslint src/ --max-warnings=100 || true
+
+      - name: Inspect Frontend Code Quality (ESLint)
+        run: |
+          cd frontend
+          npm pkg delete scripts.prepare || true
+          npm ci --legacy-peer-deps
+          npx eslint src/ --max-warnings=100 || true
+          
+  # =============================================================
   # Backend
   # =============================================================
   backend-check:
