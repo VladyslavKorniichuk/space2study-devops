@@ -13,11 +13,11 @@ permissions:
 
 jobs:
   # =============================================================
-  # CCI: Continious Code Inspection (Linting & Static analysis)
+  # CCI: Continuous Code Inspection (Linting & Static analysis)
   # =============================================================
   code-inspection-cci:
-    name: COntinious Code Inspection
-    runs-on: ubuntu latest
+    name: Continuous Code Inspection
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout source code
         uses: actions/checkout@v7
@@ -125,7 +125,7 @@ jobs:
   build-and-push-artifacts:
     name: Build, Scan & Publish Container artifacts
     runs-on: ubuntu-latest
-    needs: [backend-check, frontend-check, dependency-security-sca]
+    needs: [code-inspection-cci, backend-check, frontend-check, dependency-security-sca]
 
     steps:
       - name: Checkout source code
