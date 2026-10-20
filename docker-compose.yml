@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # -------------------------------------------------------------
   # MongoDB
@@ -90,11 +88,67 @@ services:
     networks:
       - space2study-net
 
+  # -------------------------------------------------------------
+  # cAdvisor
+  # -------------------------------------------------------------
+  cadvisor:
+    image: ghcr.io/google/cadvisor:v0.53.0
+    container_name: space2study-cadvisor
+    restart: unless-stopped
+    privileged: true
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    ports:
+      - "8080:8080"
+    networks:
+      - space2study-net
+
+  # -------------------------------------------------------------
+  # Prometheus
+  # -------------------------------------------------------------
+  prometheus:
+    image: prom/prometheus:v3.2.1
+    container_name: space2study-prometheus
+    restart: unless-stopped
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    depends_on:
+      - cadvisor
+    networks:
+      - space2study-net
+
+  # -------------------------------------------------------------
+  # Grafana
+  # -------------------------------------------------------------
+  grafana:
+    image: grafana/grafana:11.5.2
+    container_name: space2study-grafana
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    networks:
+      - space2study-net
+
 # -------------------------------------------------------------
 # Volumes & Networks
 # -------------------------------------------------------------
 volumes:
-  mongo_data: 
+  mongo_data:
+  prometheus_data:
+  grafana_data:
 
 networks:
   space2study-net:
