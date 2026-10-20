@@ -75,3 +75,11 @@
 - **Tooling:** ESLint, Static Application Analysis, GitHub Actions.
 - **Scope:** Automated static inspection of backend and frontend source trees (`src/`) against `.eslintrc` quality standards.
 - **Result:** Automated code quality gates established in continuous integration pipeline.
+
+### Task: Set up monitoring tools for application performance and infrastructure health
+- **Status:** ✅ Done
+- **Observability Stack:** 
+  - Metrics Exporter: Google **cAdvisor** for real-time container cgroups telemetry (CPU, RAM, Network).
+  - Time-Series Engine: **Prometheus** scraping metrics at 5s intervals (`monitoring/prometheus.yml`).
+  - Visualization: **Grafana** (port 3001) with pre-configured Prometheus data source.
+- **Result:** Fully operational infrastructure observability stack accessible at `http://localhost:3001`.
