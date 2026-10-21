@@ -10,6 +10,14 @@ services:
       - "27017:27017"
     volumes:
       - mongo_data:/data/db
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
     networks:
       - space2study-net
 
@@ -29,6 +37,14 @@ services:
       - CLIENT_URL=http://localhost
       - JWT_SECRET=supersecretkey12345
       - SUPER_ADMIN_PASSWORD=Password123!
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
     depends_on:
       - mongodb
     networks:
@@ -50,6 +66,14 @@ services:
       - CLIENT_URL=http://localhost
       - JWT_SECRET=supersecretkey12345
       - SUPER_ADMIN_PASSWORD=Password123!
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
     depends_on:
       - mongodb
     networks:
@@ -64,6 +88,11 @@ services:
       dockerfile: Dockerfile
     container_name: space2study-frontend
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
     depends_on:
       - backend1
       - backend2
@@ -79,6 +108,11 @@ services:
     restart: unless-stopped
     ports:
       - "80:80"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
     volumes:
       - ./nginx-lb:/etc/nginx/conf.d:ro
     depends_on:
