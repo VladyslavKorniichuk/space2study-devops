@@ -83,3 +83,11 @@
   - Time-Series Engine: **Prometheus** scraping metrics at 5s intervals (`monitoring/prometheus.yml`).
   - Visualization: **Grafana** (port 3001) with pre-configured Prometheus data source.
 - **Result:** Fully operational infrastructure observability stack accessible at `http://localhost:3001`.
+
+### Task: Monitor resource usage and plan for scalability
+- **Status:** ✅ Done
+- **Capacity Planning & Resource Limits:** Configured CPU/Memory boundaries in `docker-compose.yml`:
+  - Database (MongoDB): `limits: 512MB / 0.5 CPU`, `reservations: 128MB`.
+  - Backend Cluster (`backend1`, `backend2`): `limits: 512MB / 0.5 CPU` each.
+  - Frontend & Nginx Proxy: `limits: 128MB / 0.25 CPU` each.
+- **Verification:** Validated memory quotas using `docker stats` and real-time Prometheus/cAdvisor telemetry in Grafana.
