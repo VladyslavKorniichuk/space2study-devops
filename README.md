@@ -91,3 +91,11 @@
   - Backend Cluster (`backend1`, `backend2`): `limits: 512MB / 0.5 CPU` each.
   - Frontend & Nginx Proxy: `limits: 128MB / 0.25 CPU` each.
 - **Verification:** Validated memory quotas using `docker stats` and real-time Prometheus/cAdvisor telemetry in Grafana.
+
+### Task: Implement Secret management Strategies
+- **Status:** ✅ Done
+- **Implementation:**
+  - Removed plaintext hardcoded secrets (`JWT_SECRET`, admin credentials) from `docker-compose.yml`.
+  - Introduced `.env.example` template for public version control and enforced `.env` containment via `.gitignore`.
+  - Integrated dynamic variable interpolation (`${VAR:-default}`) into container runtime specifications.
+- **Result:** Successfully secured codebase against accidental credential exposure.
