@@ -1,3 +1,9 @@
+x-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
   # -------------------------------------------------------------
   # MongoDB
@@ -20,6 +26,7 @@ services:
           memory: 128M
     networks:
       - space2study-net
+    logging: *default-logging
 
   # -------------------------------------------------------------
   # Node.js API (Backend1)
@@ -49,6 +56,7 @@ services:
       - mongodb
     networks:
       - space2study-net
+    logging: *default-logging
 
   # -------------------------------------------------------------
   # Node.js API (Backend2)
@@ -78,6 +86,7 @@ services:
       - mongodb
     networks:
       - space2study-net
+    logging: *default-logging
 
   # -------------------------------------------------------------
   # Nginx + React SPA (Frontend)
@@ -98,6 +107,7 @@ services:
       - backend2
     networks:
       - space2study-net
+    logging: *default-logging
 
   # -------------------------------------------------------------
   # Load balancer
@@ -121,6 +131,7 @@ services:
       - backend2
     networks:
       - space2study-net
+    logging: *default-logging
 
   # -------------------------------------------------------------
   # cAdvisor
