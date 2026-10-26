@@ -99,3 +99,19 @@
   - Introduced `.env.example` template for public version control and enforced `.env` containment via `.gitignore`.
   - Integrated dynamic variable interpolation (`${VAR:-default}`) into container runtime specifications.
 - **Result:** Successfully secured codebase against accidental credential exposure.
+
+### Task: Configure logging mechanisms for tracking application and system logs
+- **Status:** ✅ Done
+- **Logging Architecture:** Centralized Docker daemon logging using high-performance `json-file` driver.
+- **Log Rotation & Retention Policy:**
+  - Implemented automated log rotation via YAML anchors (`&default-logging`).
+  - Constrained disk utilization to `max-size: 10MB` per container with a retention limit of `max-file: 3` backups.
+- **Result:** Protected infrastructure against uncontrolled disk exhaustion while maintaining structured application logs.
+
+### Task: Create an MCP server to the project
+- **Status:** ✅ Done
+- **Protocol & SDK:** Anthropic Model Context Protocol (`@modelcontextprotocol/sdk/server/mcp.js`).
+- **Exposed AI Diagnostics Tools:**
+  - `check_health`: Live HTTP polling of the Nginx ingress gateway.
+  - `get_cluster_architecture`: Machine-readable deployment metadata provider (backend topology, ports, monitoring endpoints).
+- **Result:** Standardized AI-ready observability gateway integrated for automated diagnostic agents (Claude / Cursor).
