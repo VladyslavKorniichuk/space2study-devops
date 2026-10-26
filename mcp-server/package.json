@@ -1,0 +1,13 @@
+{
+  "name": "space2study-mcp-server",
+  "version": "1.0.0",
+  "description": "Model Context Protocol (MCP) Server for Space2Study DevOps Diagnostics",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2"
+  }
+}

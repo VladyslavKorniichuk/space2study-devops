@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "space2study": {
+      "command": "node",
+      "args": ["C:/Repos/space2study-devops/mcp-server/server.js"]
+    }
+  }
+}
