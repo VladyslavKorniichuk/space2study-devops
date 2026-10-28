@@ -1,0 +1,43 @@
+# Extensions
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+
+# Receivers
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+  prometheus:
+    config:
+      scrape_configs:
+        - job_name: 'otel-cadvisor'
+          scrape_interval: 10s
+          static_configs:
+            - targets: ['cadvisor:8080']
+
+# Processors
+processors:
+  batch:
+    timeout: 1s
+    send_batch_size: 1024
+
+# Exporters
+exporters:
+  debug:
+    verbosity: basic
+
+# Service & Pipelines
+service:
+  extensions: [health_check]
+  pipelines:
+    metrics:
+      receivers: [otlp, prometheus]
+      processors: [batch]
+      exporters: [debug]
+  telemetry:
+    logs:
+      level: info
