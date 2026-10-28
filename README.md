@@ -115,3 +115,9 @@
   - `check_health`: Live HTTP polling of the Nginx ingress gateway.
   - `get_cluster_architecture`: Machine-readable deployment metadata provider (backend topology, ports, monitoring endpoints).
 - **Result:** Standardized AI-ready observability gateway integrated for automated diagnostic agents (Claude / Cursor).
+
+### Task: OpenTelemetry Monitoring (✅ Done)
+- **Collector:** `otel/opentelemetry-collector-contrib`
+- **Endpoints:** OTLP (`4317` gRPC, `4318` HTTP) | Health check (`13133`)
+- **Pipeline:** cAdvisor metric scraping (Prometheus receiver) + `batch` processor
+- **Result:** Unified, vendor-neutral ingestion for metrics and distributed tracing.
