@@ -45,6 +45,35 @@
 - **Resources:** Declaratively provisioned network (`space2study-tf-net`), persistent storage volume, and full containerized cluster (DB, 2 Backend replicas, Frontend, Nginx LB).
 - **Result:** Applied infrastructure via `terraform apply` with state tracking and drift detection.
 
+### Task: Orchestration Web Application via Kubernetes (k8s)
+- **Status:** ✅ Done
+- **Cluster & Namespace:** Single-node Kubernetes (`v1.36.1`), isolated `space2study` namespace.
+- **Declarative Architecture (`k8s/`):** Provisioned `ConfigMap`/`Secret` decoupling, MongoDB (`ClusterIP`), 2-replica Backend with CPU/Memory quotas (`128Mi-512Mi`, `100m-500m`), and Frontend exposed via `LoadBalancer` (port `80`).
+- **Result:** Verified stable Pod lifecycle (`4/4 Running`, `0 Restarts`) and full internal DNS service discovery.
+
+### Task: Pod Security Standards (PSS) & SecurityContext Hardening
+- **Status:** ✅ Done
+- **Namespace Admission (PSS):** Enforced `restricted` Pod Security Standard (`enforce/warn/audit: restricted`) on the `space2study` namespace.
+- **Container Hardening (`securityContext`):** Configured `runAsNonRoot: true`, `readOnlyRootFilesystem: true` (with ephemeral `emptyDir` volume mounts), `allowPrivilegeEscalation: false`, `capabilities: drop: ["ALL"]`, and `seccompProfile: RuntimeDefault` across all Deployments.
+- **Result:** Hardened all Kubernetes workloads against privilege escalation and root filesystem tampering in full compliance with PSS `restricted`.
+
+### Task: Runtime Security Monitoring (Falco)
+- **Status:** ✅ Done
+- **Engine:** CNCF Falco deployed via Helm (`falco` namespace) using `driver.kind=modern_ebpf` for real-time kernel syscall inspection.
+- **Verification & Intrusion Detection:** Simulated container shell execution (`kubectl exec -it backend-... -- sh -c "whoami"`) and unauthorized `/etc/shadow` read (`Permission denied`).
+- **Result:** Falco immediately intercepted the `execve` syscall and triggered a runtime security alert identifying the exact Pod, Namespace (`space2study`), and UID (`1000`).
+
+<details>
+<summary><b>📸 View Falco Verification Logs & Screenshots</b></summary>
+
+#### 1. Attack Simulation & Pod Status
+![Falco Attack Simulation](docs/images/falco-attack.png)
+
+#### 2. Falco eBPF Kernel Alert Output
+![Falco Alert Output](docs/images/falco-alert.png)
+
+</details>
+
 ### Task: Implement Continuous Integration / Continuous Delivery (CI/CD)
 - **Status:** ✅ Done
 - **Platform:** GitHub Actions (`.github/workflows/ci.yml`).
@@ -132,18 +161,6 @@
   - `get_cluster_architecture`: Machine-readable deployment metadata provider (backend topology, ports, monitoring endpoints).
 - **Result:** Standardized AI-ready observability gateway integrated for automated diagnostic agents (Claude / Cursor).
 
-### Task: Orchestration Web Application via Kubernetes (k8s)
-- **Status:** ✅ Done
-- **Cluster & Namespace:** Single-node Kubernetes (`v1.36.1`), isolated `space2study` namespace.
-- **Declarative Architecture (`k8s/`):** Provisioned `ConfigMap`/`Secret` decoupling, MongoDB (`ClusterIP`), 2-replica Backend with CPU/Memory quotas (`128Mi-512Mi`, `100m-500m`), and Frontend exposed via `LoadBalancer` (port `80`).
-- **Result:** Verified stable Pod lifecycle (`4/4 Running`, `0 Restarts`) and full internal DNS service discovery.
-
-### Task: Pod Security Standards (PSS) & SecurityContext Hardening
-- **Status:** ✅ Done
-- **Namespace Admission (PSS):** Enforced `baseline` profile and configured `restricted` auditing/warnings on the `space2study` namespace.
-- **Container Hardening (`securityContext`):** Enforced non-root execution (`runAsNonRoot: true`, `UID 1000`), disabled privilege escalation (`allowPrivilegeEscalation: false`), dropped all Linux capabilities (`drop: ["ALL"]`), and enabled `RuntimeDefault` seccomp filtering.
-- **Result:** Mitigated container breakout and privilege escalation vectors in compliance with Kubernetes `restricted` security standards.
-
 ---
 
 ## 3. System Architecture & Topology
@@ -152,21 +169,17 @@
 graph TD
     Client([Client Browser]) -->|HTTP Port 80| LB[Nginx Load Balancer / K8s Service]
     
-    subgraph Frontend Tier
-        LB -->|Route / | FE[Frontend Container: React / Vite + Nginx]
-    end
-
-    subgraph Backend Cluster
-        LB -->|Route /api Round-Robin| BE1[Backend Replica 1: Node.js API]
-        LB -->|Route /api Round-Robin| BE2[Backend Replica 2: Node.js API]
-    end
-
-    subgraph Database Tier
-        BE1 -->|Port 27017| DB[(MongoDB 6.0 Data Volume)]
+    subgraph Application Workloads - PSS Restricted
+        LB -->|Route / | FE[Frontend Container: React / Nginx UID 101]
+        LB -->|Route /api Round-Robin| BE1[Backend Replica 1: Node.js UID 1000]
+        LB -->|Route /api Round-Robin| BE2[Backend Replica 2: Node.js UID 1000]
+        BE1 -->|Port 27017| DB[(MongoDB 6.0 UID 999)]
         BE2 -->|Port 27017| DB
     end
 
-    subgraph Observability Stack
+    subgraph Runtime Security & Observability
+        Falco[Falco eBPF Probe] -.->|Syscall Inspection| BE1
+        Falco -.->|Syscall Inspection| BE2
         cAdvisor[cAdvisor: Container Metrics] -->|Scrape 8080| Prom[Prometheus TSDB: 9090]
         Prom -->|Query Endpoint| Graf[Grafana Dashboards: 3001]
         cAdvisor -->|OTLP Export| OTel[OpenTelemetry Collector: 4317/4318]
