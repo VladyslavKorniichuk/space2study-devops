@@ -2,7 +2,7 @@
 
 ## 1. Project Overview
 - **Selected Project:** Space2Study (Node.js, React, MongoDB)
-- **Status:** ✅ Completed (Full DevSecOps & Observability Lifecycle)
+- **Status:** ✅ Completed (Full DevSecOps, Kubernetes & Observability Lifecycle)
 
 ---
 
@@ -132,13 +132,25 @@
   - `get_cluster_architecture`: Machine-readable deployment metadata provider (backend topology, ports, monitoring endpoints).
 - **Result:** Standardized AI-ready observability gateway integrated for automated diagnostic agents (Claude / Cursor).
 
+### Task: Orchestration Web Application via Kubernetes (k8s)
+- **Status:** ✅ Done
+- **Cluster & Namespace:** Single-node Kubernetes (`v1.36.1`), isolated `space2study` namespace.
+- **Declarative Architecture (`k8s/`):** Provisioned `ConfigMap`/`Secret` decoupling, MongoDB (`ClusterIP`), 2-replica Backend with CPU/Memory quotas (`128Mi-512Mi`, `100m-500m`), and Frontend exposed via `LoadBalancer` (port `80`).
+- **Result:** Verified stable Pod lifecycle (`4/4 Running`, `0 Restarts`) and full internal DNS service discovery.
+
+### Task: Pod Security Standards (PSS) & SecurityContext Hardening
+- **Status:** ✅ Done
+- **Namespace Admission (PSS):** Enforced `baseline` profile and configured `restricted` auditing/warnings on the `space2study` namespace.
+- **Container Hardening (`securityContext`):** Enforced non-root execution (`runAsNonRoot: true`, `UID 1000`), disabled privilege escalation (`allowPrivilegeEscalation: false`), dropped all Linux capabilities (`drop: ["ALL"]`), and enabled `RuntimeDefault` seccomp filtering.
+- **Result:** Mitigated container breakout and privilege escalation vectors in compliance with Kubernetes `restricted` security standards.
+
 ---
 
 ## 3. System Architecture & Topology
 
 ```mermaid
 graph TD
-    Client([Client Browser]) -->|HTTP Port 80| LB[Nginx Load Balancer / Reverse Proxy]
+    Client([Client Browser]) -->|HTTP Port 80| LB[Nginx Load Balancer / K8s Service]
     
     subgraph Frontend Tier
         LB -->|Route / | FE[Frontend Container: React / Vite + Nginx]
