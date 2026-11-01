@@ -27,10 +27,16 @@ spec:
           # Container-level security (Hardening)
           securityContext:
             allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
             runAsUser: 1000 
             capabilities:
               drop:
                 - ALL # Removing unnecessary Linux system privileges
+
+          volumeMounts:
+            - name: tmp-volume
+              mountPath: /tmp
 
           ports:
             - containerPort: 5000
@@ -46,6 +52,10 @@ spec:
             limits:
               memory: "512Mi"
               cpu: "500m"
+
+      volumes:
+        - name: tmp-volume
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service

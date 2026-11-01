@@ -13,9 +13,32 @@ spec:
       labels:
         app: mongodb
     spec:
+      securityContext:
+        runAsNonRoot: true
+        fsGroup: 999
+        seccompProfile:
+          type: RuntimeDefault
+
       containers:
         - name: mongodb
           image: mongo:6.0
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 999
+            capabilities:
+              drop:
+                - ALL
+
+          volumeMounts:
+            - name: mongo-data
+              mountPath: /data/db
+            - name: mongo-config
+              mountPath: /data/configdb
+            - name: mongo-tmp
+              mountPath: /tmp
+
           ports:
             - containerPort: 27017
           resources:
@@ -25,6 +48,14 @@ spec:
             limits:
               memory: "512Mi"
               cpu: "500m"
+
+      volumes:
+        - name: mongo-data
+          emptyDir: {}
+        - name: mongo-config
+          emptyDir: {}
+        - name: mongo-tmp
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
