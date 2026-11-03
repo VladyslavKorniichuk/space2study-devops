@@ -64,7 +64,7 @@
 - **Result:** Falco immediately intercepted the `execve` syscall and triggered a runtime security alert identifying the exact Pod, Namespace (`space2study`), and UID (`1000`).
 
 <details>
-<summary><b>📸 View Falco Verification Logs & Screenshots</b></summary>
+<summary><b>View Falco Verification Logs & Screenshots</b></summary>
 
 #### 1. Attack Simulation & Pod Status
 ![Falco Attack Simulation](docs/images/falco-attack.png)
