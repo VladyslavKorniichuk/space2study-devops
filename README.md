@@ -161,6 +161,24 @@
   - `get_cluster_architecture`: Machine-readable deployment metadata provider (backend topology, ports, monitoring endpoints).
 - **Result:** Standardized AI-ready observability gateway integrated for automated diagnostic agents (Claude / Cursor).
 
+### Task: Cloud Log Management & Infrastructure Monitoring (Datadog)
+- **Status:** ✅ Done
+- **Agent:** Deployed `gcr.io/datadoghq/agent:7.58.0` (`datadoghq.eu`) with Docker socket, `/proc`, and `cgroup` read-only mounts.
+- **Configuration:** Enabled centralized container log collection (`DD_LOGS_ENABLED=true`, `DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL=true`) and Docker label tagging.
+- **Result:** Real-time log indexing, process memory treemap, and live container telemetry (`10/10 UP`) streaming to Datadog Cloud.
+
+<details>
+<summary><b>View Datadog Infrastructure & Container Telemetry Screenshots</b></summary>
+
+#### 1. Host Metrics & Process Memory Breakdown
+![Datadog Host Metrics](docs/images/datadog-metrics.png)
+
+#### 2. Live Container Telemetry (RSS Memory, CPU & Network)
+![Datadog Live Containers Part 1](docs/images/datadog-containers-1.png)
+![Datadog Live Containers Part 2](docs/images/datadog-containers-2.png)
+
+</details>
+
 ---
 
 ## 3. System Architecture & Topology
