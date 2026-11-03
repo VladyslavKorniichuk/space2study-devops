@@ -207,6 +207,26 @@ services:
       - space2study-net
 
 # -------------------------------------------------------------
+# DataDog
+# -------------------------------------------------------------
+  datadog:
+    image: gcr.io/datadoghq/agent:7.58.0
+    container_name: space2study-datadog
+    restart: unless-stopped
+    environment:
+      - DD_API_KEY=${DD_API_KEY}
+      - DD_SITE=datadoghq.eu
+      - DD_LOGS_ENABLED=true
+      - DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL=true
+      - DD_DOCKER_LABELS_AS_TAGS=true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /proc/:/host/proc/:ro
+      - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro
+    networks:
+      - space2study-net
+
+# -------------------------------------------------------------
 # Volumes & Networks
 # -------------------------------------------------------------
 volumes:
