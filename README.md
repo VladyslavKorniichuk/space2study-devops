@@ -185,11 +185,51 @@
 - **Log Ingestion:** Enabled HTTP Event Collector (HEC) on port `8088` with token-based authentication via `.env`.
 - **Verification:** Validated structured JSON ingestion (`app=space2study-backend`, `sourcetype=httpevent`) and automatic field extraction in Splunk Web UI (`http://localhost:8000`).
 
+<details>
+<summary><b>View Splunk Log Telemetry Screenshots</b></summary>
+
+#### 1. Splunk HEC Log Ingestion & Search Verification
 ![Splunk HEC Log Verification](docs/images/splunk-verification.png)
+
+</details>
 
 ---
 
-## 3. System Architecture & Topology
+## 3. Troubleshooting & Engineering Challenges
+
+### 1. MongoDB Core Dump (`signal=ILL`) on Oracle Linux VM
+- **Issue:** `mongod` systemd service crashed immediately on startup (`code=dumped, signal=ILL`).
+- **Cause:** MongoDB 6.0 requires CPU AVX instructions, which were masked by Windows Hyper-V/WHPX inside the nested VirtualBox VM.
+- **Fix:** Hosted MongoDB on the host network (`192.168.56.1:27017`) and routed Backend VM (`192.168.56.20`) traffic across the host-only adapter.
+
+### 2. Headless VM Startup Failure (`spawn xdg-open ENOENT`)
+- **Issue:** Frontend `systemd` service failed in a restart loop with `Error: spawn xdg-open ENOENT`.
+- **Cause:** Vite dev server attempted to auto-launch a desktop browser on a headless Oracle Linux VM without GUI utilities.
+- **Fix:** Set `Environment=BROWSER=none`, passed `--no-open --host 0.0.0.0` in the Ansible systemd template, and installed `xdg-utils`.
+
+### 3. Husky Git-Hook Failure in Subdirectory Builds
+- **Issue:** `npm install` aborted during automated Ansible and CI runs with `husky - .git can't be found`.
+- **Cause:** The `"prepare": "husky install"` script searched for `.git` inside isolated `backend/` and `frontend/` directories instead of the repo root.
+- **Fix:** Stripped the hook before dependency installation (`npm pkg delete scripts.prepare || true`) and added `--legacy-peer-deps`.
+
+### 4. AWS Organization SCP Blocking Terraform EC2 Provisioning
+- **Issue:** `terraform plan` failed with `HTTP 403 UnauthorizedOperation: explicit deny in a service control policy (p-de00zc3h)`.
+- **Cause:** Account-level AWS Organization Service Control Policies (SCP) restricted EC2 instance and AMI provisioning.
+- **Fix:** Migrated the Terraform state and HCL modules to the `kreuzwerker/docker` provider to provision networks, volumes, and load-balanced containers locally.
+
+### 5. Backend Memory Saturation & OOM Risk
+- **Issue:** Initial container telemetry (`docker stats` / cAdvisor) showed Backend memory usage at `169.9MiB / 256MiB` (~66%) at idle startup.
+- **Cause:** Node.js V8 + Express/Mongoose baseline footprint left minimal headroom, risking `OOMKilled (exit code 137)` under concurrent load.
+- **Fix:** Increased Backend and MongoDB memory limits to `512MiB` (with `128MiB` reservations/requests) across Docker Compose and K8s manifests.
+
+### 6. Kubernetes `restricted` PSS & Read-Only Filesystem Crashes
+- **Issue:** Enforcing `pod-security.kubernetes.io/enforce: restricted` and `readOnlyRootFilesystem: true` caused Nginx (`frontend`) and `mongodb` pods to fail on startup.
+- **Cause:** Processes lacked write access to runtime directories (`/var/cache/nginx`, `/var/run`, `/data/db`, `/tmp`) and required explicit non-root UIDs when `drop: ["ALL"]` capabilities blocked root `chown`/`setuid` entrypoint operations.
+- **Fix:** Configured explicit non-root UIDs (`1000` Node, `101` Nginx, `999` MongoDB) and mounted ephemeral `emptyDir: {}` volumes for all writable runtime paths.
+
+---
+
+## 4. System Architecture & Topology
 
 ```mermaid
 graph TD
@@ -209,6 +249,8 @@ graph TD
         cAdvisor[cAdvisor: Container Metrics] -->|Scrape 8080| Prom[Prometheus TSDB: 9090]
         Prom -->|Query Endpoint| Graf[Grafana Dashboards: 3001]
         cAdvisor -->|OTLP Export| OTel[OpenTelemetry Collector: 4317/4318]
+        DD[Datadog Agent] -.->|Docker Socket & Logs| BE1
+        Splunk[Splunk Enterprise SIEM: 8000/8088] -.->|HEC JSON Logs| BE1
     end
 
     subgraph AI Gateway
