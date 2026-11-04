@@ -198,17 +198,17 @@ services:
     volumes:
       - ./monitoring/otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml:ro
     ports:
-      - "4317:4317"   # OTLP gRPC receiver
-      - "4318:4318"   # OTLP HTTP receiver
-      - "13133:13133" # Health check endpoint
+      - "4317:4317"
+      - "4318:4318"
+      - "13133:13133"
     depends_on:
       - cadvisor
     networks:
       - space2study-net
 
-# -------------------------------------------------------------
-# DataDog
-# -------------------------------------------------------------
+  # -------------------------------------------------------------
+  # Datadog 
+  # -------------------------------------------------------------
   datadog:
     image: gcr.io/datadoghq/agent:7.58.0
     container_name: space2study-datadog
@@ -226,6 +226,35 @@ services:
     networks:
       - space2study-net
 
+  # -------------------------------------------------------------
+  # Splunk Enterprise (SIEM & Log Management)
+  # -------------------------------------------------------------
+  splunk:
+    image: splunk/splunk:10.2.9
+    container_name: space2study-splunk
+    restart: unless-stopped
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
+      - SPLUNK_PASSWORD=${SPLUNK_PASSWORD}
+      - SPLUNK_HEC_TOKEN=${SPLUNK_HEC_TOKEN}
+    ports:
+      - "8000:8000"
+      - "8088:8088"
+    volumes:
+      - splunk_var:/opt/splunk/var
+      - splunk_etc:/opt/splunk/etc
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1536M
+        reservations:
+          cpus: '0.25'
+          memory: 512M
+    networks:
+      - space2study-net
+
 # -------------------------------------------------------------
 # Volumes & Networks
 # -------------------------------------------------------------
@@ -233,6 +262,8 @@ volumes:
   mongo_data:
   prometheus_data:
   grafana_data:
+  splunk_var:
+  splunk_etc:
 
 networks:
   space2study-net:
