@@ -185,7 +185,7 @@
 - **Log Ingestion:** Enabled HTTP Event Collector (HEC) on port `8088` with token-based authentication via `.env`.
 - **Verification:** Validated structured JSON ingestion (`app=space2study-backend`, `sourcetype=httpevent`) and automatic field extraction in Splunk Web UI (`http://localhost:8000`).
 
-![Splunk HEC Log Verification](docs/splunk-verification.png)
+![Splunk HEC Log Verification](docs/images/splunk-verification.png)
 
 ---
 
