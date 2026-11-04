@@ -179,6 +179,14 @@
 
 </details>
 
+### Task: Monitoring project in Splunk
+- **Status:** ✅ Done
+- **Engine:** Containerized Splunk Enterprise (`splunk/splunk:10.2.9`).
+- **Log Ingestion:** Enabled HTTP Event Collector (HEC) on port `8088` with token-based authentication via `.env`.
+- **Verification:** Validated structured JSON ingestion (`app=space2study-backend`, `sourcetype=httpevent`) and automatic field extraction in Splunk Web UI (`http://localhost:8000`).
+
+![Splunk HEC Log Verification](docs/splunk-verification.png)
+
 ---
 
 ## 3. System Architecture & Topology
