@@ -193,6 +193,24 @@
 
 </details>
 
+### Task: Migrate an Application to the Cloud
+- **Status:** ✅ Done
+- **Cloud Provider & Service:** Microsoft Azure (`West Europe`), Azure Container Instances (ACI) in `rg-space2study`.
+- **Artifact Source:** Production multi-stage image pulled from GitHub Container Registry (`ghcr.io/vladyslavkorniichuk/space2study-devops/frontend:latest`).
+- **Networking & Ingress:** Dedicated Public IP (`20.54.231.219`) and FQDN (`space2study-vkorn.hhefbzbkf8dzf8hc.westeurope.azurecontainer.io`) routing HTTP traffic on port `80`.
+- **Result:** Verified live cloud deployment and public internet accessibility.
+
+<details>
+<summary><b>View Azure Cloud Deployment Screenshots</b></summary>
+
+#### 1. Azure Container Instances (ACI) Overview & Telemetry
+![Azure Portal Overview](docs/images/azure-portal.png)
+
+#### 2. Live Cloud Web Application (`20.54.231.219`)
+![Live Cloud Web App](docs/images/azure-app.png)
+
+</details>
+
 ---
 
 ## 3. Troubleshooting & Engineering Challenges
