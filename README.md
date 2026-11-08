@@ -252,27 +252,38 @@
 ```mermaid
 graph TD
     Client([Client Browser]) -->|HTTP Port 80| LB[Nginx Load Balancer / K8s Service]
-    
-    subgraph Application Workloads - PSS Restricted
-        LB -->|Route / | FE[Frontend Container: React / Nginx UID 101]
+    Client -->|Public IP: 20.54.231.219:80| ACI[Azure Container Instances: West Europe]
+
+    subgraph CICD["CI/CD & DevSecOps Pipeline (GitHub Actions)"]
+        Git([Git Push / PR]) --> Lint[ESLint & Multi-Stage Build]
+        Lint --> Trivy[Trivy Security Gate: SCA & Image Scan]
+        Trivy -->|Publish SHA & latest| GHCR[(GitHub Container Registry: ghcr.io)]
+    end
+
+    GHCR -->|Pull Production Image| ACI
+    GHCR -.->|Pull Images| FE
+    GHCR -.->|Pull Images| BE1
+
+    subgraph Workloads["Application Workloads (K8s PSS Restricted / Docker)"]
+        LB -->|Route /| FE[Frontend: React + Nginx UID 101]
         LB -->|Route /api Round-Robin| BE1[Backend Replica 1: Node.js UID 1000]
         LB -->|Route /api Round-Robin| BE2[Backend Replica 2: Node.js UID 1000]
         BE1 -->|Port 27017| DB[(MongoDB 6.0 UID 999)]
         BE2 -->|Port 27017| DB
     end
 
-    subgraph Runtime Security & Observability
+    subgraph Observability["Runtime Security, SIEM & Observability"]
         Falco[Falco eBPF Probe] -.->|Syscall Inspection| BE1
         Falco -.->|Syscall Inspection| BE2
-        cAdvisor[cAdvisor: Container Metrics] -->|Scrape 8080| Prom[Prometheus TSDB: 9090]
-        Prom -->|Query Endpoint| Graf[Grafana Dashboards: 3001]
-        cAdvisor -->|OTLP Export| OTel[OpenTelemetry Collector: 4317/4318]
-        DD[Datadog Agent] -.->|Docker Socket & Logs| BE1
-        Splunk[Splunk Enterprise SIEM: 8000/8088] -.->|HEC JSON Logs| BE1
+        cAdvisor[cAdvisor: 8080] -->|Scrape 5s| Prom[Prometheus TSDB: 9090]
+        Prom -->|PromQL| Graf[Grafana Dashboards: 3001]
+        cAdvisor -->|OTLP Metrics| OTel[OpenTelemetry Collector: 4317/4318]
+        DD[Datadog Agent: datadoghq.eu] -.->|Logs & Host/Container Metrics| Workloads
+        Splunk[Splunk Enterprise SIEM: 8000/8088] -.->|HEC JSON Logs| Workloads
     end
 
-    subgraph AI Gateway
+    subgraph AIGateway["AI Diagnostics Gateway"]
         Agent[AI Agent / Claude] <-->|Stdio JSON-RPC| MCP[MCP Server: Diagnostics]
-        MCP -.->|Health Check HTTP| LB
+        MCP -.->|HTTP Health Check| LB
     end
 ```
